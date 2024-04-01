@@ -33,8 +33,11 @@ export const posts = [
   },
 ];
 
+export const tags = [];
+
 const db = {
   posts,
+  tags
 };
 const DbPlugin = fp(function DbPlugin(fastify, opts, next) {
   fastify.log.info("Database loading...");

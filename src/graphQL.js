@@ -7,7 +7,7 @@ export const schema = `
     id: ID!
     title: String!
     content: String!
-    tag: Tag!
+    tag: Tag
   }
 
   type Tag {
@@ -39,7 +39,7 @@ export const schema = `
     getTags: [Tag!]!
     getPosts: [Post!]!
     getPost(id: ID!): Post
-    getPostByTag(tagId: ID!): [Post!]!
+    getPostByTag(tagId: ID!): [Post!]
   }
 
   type Mutation {
@@ -52,6 +52,19 @@ export const schema = `
 
 export const resolvers = {
   Query: {
+    getTags: (_parent, args, { app }) => {
+      return app.db.tags;
+    },
+    getPostByTag: (_parent, args, { app }) => {
+      const { tagId } = args;
+      console.log("--------------")
+      console.log(tagId)
+      console.log("--------------")
+      const postWithMatchTag =  app.db.posts.filter((post) => {
+        return post.tag && post.tag.id === tagId;
+      });
+      return postWithMatchTag;
+    },
     getPosts: (_parent, args, { app }) => {
       return app.db.posts;
     },
@@ -62,12 +75,15 @@ export const resolvers = {
   },
   Mutation: {
     createPost: (_parent, { newPost }, { app }) => {
-      const { title, content } = newPost;
-
+      const { title, content, tagId } = newPost;
       const post = {
         id: randomUUID(),
         title,
         content,
+        tag: {
+          id: tagId,
+          name: app.db.tags.find(tag => tag.id).name
+        }
       };
       app.db.posts.push(post);
       return post;
@@ -98,7 +114,8 @@ export const resolvers = {
         id: randomUUID(),
         name: name,
       };
-      app.db.posts.push(tag);
+      app.db.tags.push(tag);
+      return tag;
     }
   },
 };
